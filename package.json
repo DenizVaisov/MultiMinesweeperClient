@@ -18,7 +18,8 @@
     "vue": "^2.6.10",
     "vue-class-component": "^7.1.0",
     "vue-property-decorator": "^8.2.2",
-    "vue2-touch-events": "^2.0.0"
+    "vue2-touch-events": "^2.0.0",
+    "ws": "^7.2.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.12.0",
