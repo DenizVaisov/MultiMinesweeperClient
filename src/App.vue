@@ -1,27 +1,23 @@
 <template>
   <div id="app">
-    <Home msg="Welcome to Your Vue.js App"/>
+    <router-view/>
   </div>
 </template>
 
 <script>
-import Home from './views/Home.vue'
-import Vue from 'vue'
-import Vue2TouchEvents from 'vue2-touch-events'
-
-Vue.use(Vue2TouchEvents)
-
 export default {
   name: 'app',
   components: {
-    Home
   }
 }
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css?family=Exo+2|Roboto|Source+Sans+Pro|Oswald&display=swap');
+
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
+  /* font-family: 'Avenir', Helvetica, Arial, sans-serif; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;

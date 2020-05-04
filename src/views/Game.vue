@@ -2,7 +2,8 @@
 <div id="text">
   <b-container fluid>
     <b-row>
-      <b-col offset-md="1" md="6" class="mt-4"> 
+      <b-col offset-md="1" md="6" class="mt-4">
+        <h3>ОСТАЛОСЬ ЖИЗНЕЙ: 3</h3> 
         <table id="gametable" class="table table-bordered table-responsive table-hover-cells">
           <tbody>
             <tr v-for="row in gameField.length" :key="row">
@@ -13,10 +14,8 @@
           </tbody>
         </table>
       </b-col>
-      <b-col class="mt-4" md="4">
-        <HelloWorld msg="Чат" />
-        <div class="mt-4" id="inputForm">
-          <b-form-input v-model="user" type="text" placeholder="Логин" ></b-form-input>
+      <b-col md="4">
+        <div id="inputForm">
             <b-input-group class="mt-4">
                 <b-form-textarea v-model="message" type="text"
                   id="textarea-default"
@@ -36,8 +35,8 @@
         <div class="panel-heading">
             <h3 style="color: black;" class="text-center"></h3>
         </div>
-        <div id="chatroom" class="mt-4 panel-body" style="max-height: 400px; overflow-y: scroll;">
-          <div v-for="(user, index) in listMessage" :item="user" :key="index" class="mb-4 max-w-sm mx-auto">
+        <div id="chatroom" class="mt-4 panel-body" style="max-height: 500px; overflow-y: scroll;">
+          <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mb-4 max-w-sm mx-auto">
             <div class="card">
                 <div class="contact-list">
                     <div class="contact-list-item">
@@ -45,10 +44,10 @@
                          <img src="" class="contact-list-avatar" alt=""> 
                         <div>
                           <div id="username" class="contact-list-name">
-                            {{ user.name }} 
+                            {{ player.name }} 
                           </div>
                           <div id="usermessage" class="contact-list-email">
-                            {{ user.data }} 
+                            {{ player.data }} 
                           </div>
                         </div>
                       </div>
@@ -56,33 +55,8 @@
                 </div>
               </div>
             </div>
+          </div>
         </div>
-    </div>
-      </b-col>
-      <b-col md="12">
-        <!-- <div v-for="(user, index) in listMessage" :item="user" :key="index" id="chatroom">
-          <b-col offset-md="2" md="8">
-            <div class="mt-4 max-w-sm mx-auto">
-            <div class="card">
-                <div class="contact-list">
-                    <div class="contact-list-item">
-                      <div class="contact-list-contact">
-                         <img src="" class="contact-list-avatar" alt=""> 
-                        <div>
-                          <div id="username" class="contact-list-name">
-                            {{ user.name }} 
-                          </div>
-                          <div id="usermessage" class="contact-list-email">
-                            {{ user.data }} 
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-              </div>
-            </div>
-          </b-col>
-        </div> -->
       </b-col>
     </b-row>
   </b-container>
@@ -96,7 +70,7 @@ import HelloWorld from '../components/HelloWorld.vue'
 import axios from 'axios'
 
 export default {
-  name: 'Home',
+  name: 'Game',
   components: {
     HelloWorld
   },
@@ -106,7 +80,6 @@ export default {
   data() {
     return {
       mine: "",
-      field: {},
       gameField: {},
       mines: [],
       postBody: {
@@ -114,35 +87,47 @@ export default {
         cols: ""
       },
       cell: "",
+      player: {},
+      currentPlayer: {},
+      player1: {},
+      player2: {},
+      yourTurn: false,
       row: "",
       generatedMines: [],
       neighbourSquareNumbers: [],
       finished: false,
       won: false,
-      user: "",
       message: "",
       listMessage: [],
-      chatHubConnection: null,
       gameHubConnection: null
     }
   },
   methods: {
     chat: function () {
-      if (this.chatHubConnection.state === signalR.HubConnectionState.Connected) {
-        this.chatHubConnection.invoke('SendMessage', this.user, this.message)
-      } else {
-        this.chatHubConnection.start()
-        .then(() => this.chatHubConnection.invoke('SendMessage', this.user, this.message))
+      if (this.gameHubConnection.state === signalR.HubConnectionState.Connected) {
+        // console.log('connection status', signalR.HubConnectionState.Connected);
+        this.gameHubConnection.invoke('SendMessage', this.player, this.message);
+      } 
+      
+      else {
+        // console.log('Connection started', signalR.HubConnectionState.Connected)
+         this.gameHubConnection.start()
+        .then(() => this.gameHubConnection.invoke('SendMessage', this.player, this.message));
       }
     },
 
     game: function() {
-      if(this.gameHubConnection.state === signalR.HubConnection.Connected) {
-       this.gameHubConnection.invoke('CellClick', this.row, this.cell)
-      } 
+      if(this.gameHubConnection.state === signalR.HubConnectionState.Connected) {
+      //  console.log('connection status: ', this.gameHubConnection.state);
+        this.gameHubConnection.invoke('CellClick', this.row, this.cell).catch(err => console.error(err.toString()));
+        this.gameHubConnection.invoke('UpdateUser');
+      }
+      
       else {
+        // console.log('Connection started')
         this.gameHubConnection.start()
-        .then(() => this.gameHubConnection.invoke('CellClick', this.row, this.cell))
+        .then(() => this.gameHubConnection.invoke('CellClick', this.row, this.cell).catch(err => console.error(err.toString())))
+        // console.log('connection status: ', signalR.HubConnection.Connected);
       }
     },
 
@@ -157,9 +142,9 @@ export default {
     },
 
     clickedCell: function(row, cell) {
-      let table = document.getElementById('gametable')
-      table.rows[row-1].cells[cell-1].textContent = cell
-      alert(row + '  ' + cell)
+      let table = document.getElementById('gametable');
+      // table.rows[row-1].cells[cell-1].textContent = cell;
+      // alert(row + '  ' + cell);
 
       this.row = row - 1
       this.cell = cell - 1
@@ -170,16 +155,14 @@ export default {
           Columns: cell,
           Rows: row
       }
-      // this.generateMines(this.gameField, row, cell)
     
-      // axios.post('https://localhost:5001/GameLogic/ClickedCell', postBody)
-      // .then(function (response) {
-      //   console.log(response);
-      // })
-      // .catch(function (error) {
-      //   console.log(error);
-      // });
-
+      axios.post('https://localhost:5001/GameLogic/ClickedCell', postBody)
+      .then(function (response) {
+        console.log();
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
     },
 
     generateMines: function(row, cell) {
@@ -193,52 +176,70 @@ export default {
       // })
     },
 
-    generateNeighbourBombsNumbers: function() {
+    generateNeighbourMinesNumbers: function() {
       
     },
 
-    displayBombs: function() {
-      this.generatedBombs.sort(function(a,b){
+    displayMines: function() {
+      this.generatedMines.sort(function(a,b){
         return a - b
       })
     }
   },
 
-  created() {
-    axios.get('https://localhost:5001/GameLogic/GameField').then((response) => 
-        this.gameField = response.data,
-      ).then((response) =>
-        console.log(response))
-  },
   watch: {
     
   },
   mounted: function () {
     // setInterval(() => this.generateField(), 10000);
-    // this.generateBombs()
-    // this.displayBombs()
-    // this.generateNeighbourBombsNumbers()
-    this.chatHubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:5001/chat')
-      .configureLogging(signalR.LogLevel.Information)
-      .build()
-      console.log("Connected", this.chatHubConnection)
+    
+    axios.get('https://localhost:5001/Lobby/Identity', {withCredentials: true}).then((response) => {
+      this.player = response.data.player;
+      return response;
+    });
+
+    axios.get('https://localhost:5001/GameLogic/GameField').then((response) => 
+    this.gameField = response.data
+    ).then((response) =>console.log())
 
     this.gameHubConnection = new signalR.HubConnectionBuilder()
       .withUrl('https://localhost:5001/game')
       .configureLogging(signalR.LogLevel.Information)
       .build()
-      console.log("Connected", this.gameHubConnection)
+      console.log("Connected", this.gameHubConnection);
 
-    this.chatHubConnection.on('ReceiveMessage', (user, message) => {
-      const insertdata = {name: user, data: message}
-      this.listMessage.push(insertdata)
-      console.log(this.listMessage, 'listMessage')
+    // this.gameHubConnection.start();
+
+    this.gameHubConnection.on('ReceiveMessage', (player, message) => {
+      const insertdata = {name: player, data: message};
+      this.listMessage.push(insertdata);
+      console.log(this.listMessage, 'listMessage');
     })
 
-    this.gameHubConnection.serverTimeoutInMilliseconds = 1000 * 60 * 10
+    this.gameHubConnection.on(('RollCall'), (player1, player2) => {
+      this.player1 = player1;
+      this.player2 = player2;
+      // console.log(this.player1.name, this.player2.name);
+    })
 
-    this.gameHubConnection.on('CellClick', this.row, this.cell)
+    this.gameHubConnection.on(('PlayerTurn'), (player) => {
+      this.currentPlayer = player;
+      console.log(`Current players is ${this.currentPlayer.name}`);
+    })
+
+    this.gameHubConnection.on('GenerateGameField', (gameField) => {
+      // console.log(gameField);
+    })
+
+    // this.gameHubConnection.on('MakeTurn', (player) => {
+    //   console.log(player)
+    // })
+
+    this.gameHubConnection.on(('Concede'), () => {
+        alert('You win');
+        console.log('You win');
+        this.gameHubConnection.stop();
+    })
   }
 }
 </script>
