@@ -1,21 +1,37 @@
 <template>
 <div>
+<navigation
+  :closeConnection="closeConnection"
+>
+</navigation>
   <b-container>
-    <b-row>
-      <b-col offset-md="3">
-      </b-col>
-    </b-row>
     <b-row>
         <b-col offset-md="2" md="8">
         <div class="mt-4" id="inputForm">
-          <b-button pill :to="{ name: 'Game' }" variant="primary">ИГРАТЬ</b-button>
+          <b-row> 
+            <b-col md="3">
+              <b-button 
+                id="play" 
+                pill 
+                v-on:click="playersMathching()" 
+                :variant="variant">ИГРАТЬ
+              </b-button>
+            </b-col>
+            <b-col md="9">
+              <h3>
+                {{onlyOne}}
+              </h3>
+            </b-col>
+          </b-row>
             <b-input-group class="mt-4">
                 <b-form-textarea v-model="message" type="text"
-                  id="textarea-default"
+                  id="textarea"
                   placeholder="Сообщение"
                 ></b-form-textarea>
                 <b-input-group-append>
-                  <b-button variant="outline-primary" 
+                  <b-button 
+                    :disabled="disabled"
+                    variant="outline-primary" 
                     v-touch:tap="chat" 
                     type="button" 
                     id="sendBtn" 
@@ -23,6 +39,11 @@
                   </b-button>
                 </b-input-group-append>
           </b-input-group>
+        </div>
+        <div class="mt-4">
+          <span id="players-online">
+            Игроков в лобби: {{players.length}}
+          </span>
         </div>
         <div class="panel panel-default">
         <div class="panel-heading">
@@ -69,19 +90,26 @@
 'use strict'
 import * as signalR from '@aspnet/signalr'
 import HelloWorld from '../components/HelloWorld.vue'
+import Navigation from '../views/Navigation'
 import axios from 'axios'
 
 export default {
     name: 'Lobby',
     components: {
-        HelloWorld
+        HelloWorld,
+        Navigation
     },
     data(){
         return {
             player: {},
+            variant: "primary",
+            success: "success",
+            waiting: "",
             chatHistoty:[],
             newPlayer: "",
+            onlyOne: "",
             obj: {},
+            disabled: false,
             message: "",
             listMessage: [],
             chatHubConnection: {},
@@ -97,11 +125,38 @@ export default {
             return true;
         },
 
+        playersMathching: function() {
+          if(this.chatHubConnection.state === signalR.HubConnectionState.Connected){
+            this.variant = this.success;
+            if(this.players.length > 1){
+              console.log(this.players);
+              this.chatHubConnection.invoke('MatchPlayers');
+            }
+            else{
+             this.onlyOne = "В очереди нет других игроков";
+             console.log(this.players);
+            }
+          }
+          else{
+            this.chatHubConnection.start();
+          }
+        },
+
+        
+      closeConnection: function(){
+        this.chatHubConnection.stop();
+      },
+
         chat: function () {
             console.log(this)
              if (this.chatHubConnection.state === signalR.HubConnectionState.Connected) {
-                this.chatHubConnection.invoke('SendMessage', this.player, this.message)
-            } 
+               if(this.message.length > 0) {
+                this.chatHubConnection.invoke('SendMessage', this.player, this.message);
+                this.chatHubConnection.invoke('CheckPlayers');
+                this.message = "";
+                return !this.disabled;
+             }
+          } 
         }
     },
     
@@ -116,14 +171,25 @@ export default {
             .configureLogging(signalR.LogLevel.Information)
             .build();
             console.log("Connected", this.chatHubConnection);
+            
 
-        this.chatHubConnection.start()
+        this.chatHubConnection.start();
+
+        this.chatHubConnection.on('PlayersOnline', (players) => {
+          this.players = players;
+          console.log(this.players);
+        });
+
+        this.chatHubConnection.on('ToTheGame', () =>{
+            this.$router.push({ name: 'Game' });
+            this.chatHubConnection.stop();
+        });
 
         this.chatHubConnection.on('ReceiveMessage', (player, message) => {
             const insertdata = {name: player, data: message};
             this.listMessage.push(insertdata);
             console.log(this.listMessage, 'listMessage');
-        })
+        });
     }
 }
 </script>

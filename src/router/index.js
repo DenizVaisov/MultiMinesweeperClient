@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Game from '@/views/Game'
 import Lobby from'@/views/Lobby'
+import Results from '@/views/Results'
 import Vue2TouchEvents from 'vue2-touch-events'
 
 Vue.use(Vue2TouchEvents)
@@ -14,6 +15,11 @@ export default new Router({
         path: '/',
         name: 'Lobby',
         component: Lobby
+      },
+      {
+        path: '/results',
+        name: 'Results',
+        component: Results
       },
       {
         path: '/game',
