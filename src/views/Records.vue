@@ -6,29 +6,23 @@
         <b-container fluid>
             <b-row>
                 <b-col offset-md="1" md="10">
-                    <table class="mt-4 mb-4 table table-dark table-hover">
+                    <table style="overflow: scroll" class="mt-4 mb-4 table table-dark table-hover">
                         <thead>
                             <tr>
-                            <th scope="col">Игрок</th>
-                            <th scope="col">VS</th>
-                            <th scope="col">Игрок</th>
-                            <th scope="col">Рейтинг</th>
-                            <th scope="col">Рейтинг</th>
-                            <th scope="col">Ставка</th>
-                            <th scope="col">Победил</th>
-                            <th scope="col">Проиграл</th>
+                                <th scope="col">Место</th>
+                                <th scope="col">Игрок</th>
+                                <th scope="col">Рейтинг</th>
+                                <th scope="col">Победил</th>
+                                <th scope="col">Проиграл</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="player in players" :key="player.id">
-                            <td>{{player.win}}</td>
-                            <td>VS</td>
-                            <td>{{player.lose}}</td>
-                            <td>+{{player.plusRating}}</td>
-                            <td>{{player.minusRating}}</td>
-                            <td>{{player.points}}</td>
-                            <td>{{player.win}}</td>
-                            <td>{{player.lose}}</td>
+                            <tr v-for="(player, index) in players" :key="player.id">
+                                <td>{{index + 1}}</td>
+                                <td>{{player.login}}</td>
+                                <td>{{player.points}}</td>
+                                <td>{{player.win}} раз(а)</td>
+                                <td>{{player.lose}} раз(а)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -42,7 +36,7 @@
 import Navigation from '../views/Navigation'
 import axios from 'axios'
 export default {
-  name: 'Results',
+  name: 'Records',
   components: {
     Navigation
   },
@@ -57,7 +51,7 @@ export default {
   },
 
   mounted: function() {
-      axios.get('https://localhost:5001/Lobby/HighScores', {withCredentials: true}).then((response) => {
+      axios.get('https://localhost:5001/Lobby/Records', {withCredentials: true}).then((response) => {
       this.players = response.data;
       return response;
     }).then(response => console.log(response.data));
@@ -66,7 +60,7 @@ export default {
 </script>
 
 <style scoped>
-  tbody {
+tbody {
       display:block;
       max-height:450px;
       overflow-y:auto;

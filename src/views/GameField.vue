@@ -4,9 +4,8 @@
         <tbody>
         <tr v-for="(row, index1) in gameField" :key="index1">
           <td 
-              v-on:click.left="clickedCell(index1, index2, $event)"
-              v-on:click.right="addMine(index1, index2, $event)" 
-              v-on:click.middle="addFlag(index1, index2, $event)"
+              v-on:click.left="clickedCell(index1, index2, $event), addMine(index1, index2, $event)"
+              v-on:click.right="addFlag(index1, index2, $event)"
               class="cell" v-for="(cell, index2) in row" :key="index2">
           <template v-if="!cell.clickedCell">
           </template>
@@ -14,7 +13,7 @@
             <img v-show="hideMines" class="bomb" id="bomb" src="../assets/images/bomb.png"/>
           </template>
           <template v-else-if="cell.clickedCell && cell.merged">
-            <b-icon icon="flag-fill" style="height:30px; width:30px" variant="danger"></b-icon>
+            <b-icon v-show="hideFlags" icon="flag-fill" style="height:25px; width:25px" variant="danger"></b-icon>
           </template>
           <template v-else-if="cell.clickedCell && cell.kaboom">
             <img class="bomb" id="bomb" src="../assets/images/boom.png"/>  
@@ -32,7 +31,7 @@
 <script>
 export default {
     name: 'game-field',
-    props: ['gameField', 'clickedCell', 'addMine', 'addFlag', 'handleClick', 'hideMines', 'hideNeighbour']
+    props: ['gameField', 'clickedCell', 'addMine', 'addFlag', 'hideMines', 'hideNeighbour', 'hideFlags']
 }
 </script>
 

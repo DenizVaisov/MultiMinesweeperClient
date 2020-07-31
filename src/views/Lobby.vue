@@ -12,13 +12,14 @@
             <b-col md="3">
               <b-button 
                 id="play" 
-                pill 
+                pill
+                :disabled="playButtonDisabler"
                 v-on:click="playersMathching()" 
                 :variant="variant">ИГРАТЬ
               </b-button>
             </b-col>
             <b-col md="9">
-              <h3>
+              <h3 id="msg" ref="message">
                 {{onlyOne}}
               </h3>
             </b-col>
@@ -102,6 +103,7 @@ export default {
     data(){
         return {
             player: {},
+            playButtonDisabler: false,
             variant: "primary",
             success: "success",
             waiting: "",
@@ -116,19 +118,19 @@ export default {
             players: [],
         }
     },
+    computed: {
+     
+    },
     methods: {
-        isEmpty : function(obj) {
-            for(var key in obj) {
-                if(obj.hasOwnProperty(key))
-                    return false;
-            }
-            return true;
+        playButton: function(){
+            this.playButtonDisabler = false;
         },
 
         playersMathching: function() {
           if(this.chatHubConnection.state === signalR.HubConnectionState.Connected){
             this.variant = this.success;
             if(this.players.length > 1){
+              this.playButtonDisabler = true;
               console.log(this.players);
               this.chatHubConnection.invoke('MatchPlayers');
             }
@@ -148,7 +150,6 @@ export default {
       },
 
         chat: function () {
-            console.log(this)
              if (this.chatHubConnection.state === signalR.HubConnectionState.Connected) {
                if(this.message.length > 0) {
                 this.chatHubConnection.invoke('SendMessage', this.player, this.message);
@@ -161,7 +162,8 @@ export default {
     },
     
     mounted: function() {
-        axios.get('https://localhost:5001/Lobby/Identity', {withCredentials: true}).then((response) => {
+        axios.get('https://localhost:5001/Lobby/Identity', {withCredentials: true}).
+        then((response) => {
             this.player = response.data.player;
             return response;
         });
@@ -181,8 +183,8 @@ export default {
         });
 
         this.chatHubConnection.on('ToTheGame', () =>{
-            this.$router.push({ name: 'Game' });
-            this.chatHubConnection.stop();
+          this.$router.push({ name: 'Game' });
+          this.chatHubConnection.stop();
         });
 
         this.chatHubConnection.on('ReceiveMessage', (player, message) => {
