@@ -57,7 +57,7 @@ export default {
   },
 
   mounted: function() {
-      axios.get('https://localhost:5001/Lobby/HighScores', {withCredentials: true}).then((response) => {
+      axios.get('http://192.168.43.159:5000/Lobby/HighScores', {withCredentials: true}).then((response) => {
       this.players = response.data;
       return response;
     }).then(response => console.log(response.data));

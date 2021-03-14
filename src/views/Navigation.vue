@@ -14,13 +14,13 @@
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto">
             <template v-if="player.player==undefined">
-                <b-navbar-brand>Гость</b-navbar-brand>
+                <b-navbar-brand><b-button pill variant="danger">Гость</b-button></b-navbar-brand>
             </template>
             <template v-else>
-                <b-navbar-brand>{{player.player}}</b-navbar-brand>
-                <b-navbar-brand>{{player.points}} pts.</b-navbar-brand>
+                <b-navbar-brand> <b-button pill variant="danger">{{player.player}}</b-button></b-navbar-brand>
+                <b-navbar-brand><b-button pill variant="danger">{{player.points}} pts</b-button></b-navbar-brand>
             </template>
-            <b-nav-item href="https://localhost:5001/Auth/SignIn">
+            <b-nav-item href="http://192.168.43.159:5000/Auth/SignIn">
                 <p class="h4 mb-2"><b-icon id="logout-icon" icon="box-arrow-in-left"></b-icon></p>
             </b-nav-item>
         </b-navbar-nav>
@@ -30,7 +30,6 @@
 </template>
 
 <script>
-import * as signalR from '@aspnet/signalr';
 import axios from 'axios'
 export default {
    props: ['closeConnection'],
@@ -45,7 +44,7 @@ export default {
     
    },
    mounted: function(){
-    axios.get('https://localhost:5001/Lobby/Identity', {withCredentials: true}).then((response) => {
+    axios.get('http://192.168.43.159:5000/Lobby/Identity', {withCredentials: true}).then((response) => {
         this.player = response.data;
         return response;
     }).then((response) => console.log(response.data));

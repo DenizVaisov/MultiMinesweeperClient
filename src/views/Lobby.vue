@@ -131,12 +131,10 @@ export default {
             this.variant = this.success;
             if(this.players.length > 1){
               this.playButtonDisabler = true;
-              console.log(this.players);
               this.chatHubConnection.invoke('MatchPlayers');
             }
             else{
-             this.onlyOne = "В очереди нет других игроков";
-             console.log(this.players);
+             this.onlyOne = "В лобби нет других игроков";
             }
           }
           else{
@@ -162,14 +160,14 @@ export default {
     },
     
     mounted: function() {
-        axios.get('https://localhost:5001/Lobby/Identity', {withCredentials: true}).
+        axios.get('http://192.168.43.159:5000/Lobby/Identity', {withCredentials: true}).
         then((response) => {
             this.player = response.data.player;
             return response;
         });
 
         this.chatHubConnection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:5001/chat')
+            .withUrl('http://192.168.43.159:5000/chat')
             .configureLogging(signalR.LogLevel.Information)
             .build();
             console.log("Connected", this.chatHubConnection);
