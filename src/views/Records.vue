@@ -6,26 +6,28 @@
         <b-container fluid>
             <b-row>
                 <b-col offset-md="1" md="10">
-                    <table style="overflow: scroll" class="mt-4 mb-4 table table-dark table-hover">
+                  <div class="table-responsive">
+                      <table style="overflow: scroll" class="mt-4 mb-4 table table-dark table-hover">
                         <thead>
-                            <tr>
-                                <th scope="col">Место</th>
-                                <th scope="col">Игрок</th>
-                                <th scope="col">Рейтинг</th>
-                                <th scope="col">Победил</th>
-                                <th scope="col">Проиграл</th>
-                            </tr>
+                          <tr>
+                            <th scope="col">{{ $t('place') }}</th>
+                            <th scope="col">{{ $t('player') }}</th>
+                            <th scope="col">{{ $t('rating') }}</th>
+                            <th scope="col">{{ $t('win') }}</th>
+                            <th scope="col">{{ $t('lose') }}</th>
+                          </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(player, index) in players" :key="player.id">
-                                <td>{{index + 1}}</td>
-                                <td>{{player.login}}</td>
-                                <td>{{player.points}}</td>
-                                <td>{{player.win}} раз(а)</td>
-                                <td>{{player.lose}} раз(а)</td>
-                            </tr>
+                          <tr v-for="(player, index) in players" :key="player.id">
+                            <td>{{index + 1}}</td>
+                            <td>{{player.login}}</td>
+                            <td>{{player.points}}</td>
+                            <td>{{player.win}} {{ $t('times') }}</td>
+                            <td>{{player.lose}} {{ $t('times') }}</td>
+                          </tr>
                         </tbody>
-                    </table>
+                      </table>
+                    </div>
                 </b-col>
             </b-row>
         </b-container>
@@ -33,8 +35,8 @@
 </template>
 
 <script>
-import Navigation from '../views/Navigation'
-import axios from 'axios'
+import Navigation from '../views/Navigation';
+import LobbyService from '../api-services/lobby.service';
 export default {
   name: 'Records',
   components: {
@@ -42,35 +44,52 @@ export default {
   },
   props: ['closeConnection'],
   data() {
-      return {
-        players: []
-      }
+    return {
+      players: []
+    }
   },
   methods: {
-      
+    playerRecords: function() {
+      LobbyService.getPlayerRecords().then(response => {
+      if(response.status === 200 || response.status === 201) {
+        this.players = response.data;
+        console.log(response.data);
+        return response;
+      }
+    });
+    }
   },
-
   mounted: function() {
-      axios.get('http://192.168.43.159:5000/Lobby/Records', {withCredentials: true}).then((response) => {
-      this.players = response.data;
-      return response;
-    }).then(response => console.log(response.data));
+    this.playerRecords();
   }
 }
 </script>
 
 <style scoped>
-tbody {
-      display:block;
-      max-height:450px;
-      overflow-y:auto;
+  tbody {
+    display:block;
+    max-height:450px;
+    overflow-y:auto;
   }
+
   thead, tbody tr {
-      display:table;
-      width:100%;
-      table-layout:fixed;
+    display:table;
+    width:100%;
+    table-layout:fixed;
   }
   thead {
-      width: calc( 100% - 1em )
-  } 
+    width: calc( 100% - 1em )
+  }
+
+  @media screen and (max-width: 660px) {
+    .table thead th {
+      vertical-align: bottom;
+      border-bottom: 2px solid #dee2e6;
+      width: 100px !important;
+    }
+
+    .text-size {
+      font-size: 12px;
+    }
+  }
 </style>

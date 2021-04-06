@@ -10,13 +10,13 @@
           <template v-if="!cell.clickedCell">
           </template>
           <template v-else-if="cell.clickedCell && cell.minedCell">
-            <img v-show="hideMines" class="bomb" id="bomb" src="../assets/images/bomb.png"/>
+            <img style="height:25px;" v-show="hideMines" class="bomb" id="bomb" src="../assets/images/bomb.png"/>
           </template>
           <template v-else-if="cell.clickedCell && cell.merged">
-            <b-icon v-show="hideFlags" icon="flag-fill" style="height:25px; width:25px" variant="danger"></b-icon>
+            <b-icon v-show="hideFlags" icon="flag-fill" style="height:25px;" variant="danger"></b-icon>
           </template>
           <template v-else-if="cell.clickedCell && cell.kaboom">
-            <img class="bomb" id="bomb" src="../assets/images/boom.png"/>  
+            <img style="height:25px;" class="bomb" id="bomb" src="../assets/images/boom.png"/>  
           </template>
           <template v-else-if="cell.clickedCell && !cell.minedCell">
             <span v-show="hideNeighbour">{{cell.neighbourCells}}</span>

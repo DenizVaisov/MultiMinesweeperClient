@@ -5,24 +5,25 @@
         </navigation>
         <b-container fluid>
             <b-row>
-                <b-col offset-md="1" md="10">
-                    <table class="mt-4 mb-4 table table-dark table-hover">
-                        <thead>
+                <b-col offset-md="1" md="10" sm="12">
+                  <div class="table-responsive">
+                    <table style="overflow: scroll" class="mt-4 mb-4 table table-dark table-hover">
+                        <thead class="text-size">
                             <tr>
-                            <th scope="col">Игрок</th>
-                            <th scope="col">VS</th>
-                            <th scope="col">Игрок</th>
-                            <th scope="col">Рейтинг</th>
-                            <th scope="col">Рейтинг</th>
-                            <th scope="col">Ставка</th>
-                            <th scope="col">Победил</th>
-                            <th scope="col">Проиграл</th>
+                              <th scope="col">{{ $t('player') }}</th>
+                              <th class="text-center" scope="col">VS</th>
+                              <th scope="col">{{ $t('player') }}</th>
+                              <th scope="col">{{ $t('rating') }}</th>
+                              <th scope="col">{{ $t('rating') }}</th>
+                              <th scope="col">{{ $t('rate') }}</th>
+                              <th scope="col">{{ $t('win') }}</th>
+                              <th scope="col">{{ $t('lose') }}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-size">
                             <tr v-for="player in players" :key="player.id">
                             <td>{{player.win}}</td>
-                            <td>VS</td>
+                            <td class="text-center">VS</td>
                             <td>{{player.lose}}</td>
                             <td>+{{player.plusRating}}</td>
                             <td>{{player.minusRating}}</td>
@@ -32,6 +33,7 @@
                             </tr>
                         </tbody>
                     </table>
+                  </div>
                 </b-col>
             </b-row>
         </b-container>
@@ -39,8 +41,8 @@
 </template>
 
 <script>
-import Navigation from '../views/Navigation'
-import axios from 'axios'
+import Navigation from '../views/Navigation';
+import LobbyService from '../api-services/lobby.service';
 export default {
   name: 'Results',
   components: {
@@ -48,28 +50,31 @@ export default {
   },
   props: ['closeConnection'],
   data() {
-      return {
-        players: []
-      }
+    return {
+      players: [],
+    }
   },
   methods: {
-      
+    gameResults() {
+      LobbyService.getGameResults().then(response => {
+        if(response.status === 200 || response.status === 201) {
+          this.players = response.data;
+          return response;
+        }
+      })
+    }
   },
-
   mounted: function() {
-      axios.get('http://192.168.43.159:5000/Lobby/HighScores', {withCredentials: true}).then((response) => {
-      this.players = response.data;
-      return response;
-    }).then(response => console.log(response.data));
+    this.gameResults();
   }
 }
 </script>
 
 <style scoped>
   tbody {
-      display:block;
-      max-height:450px;
-      overflow-y:auto;
+    display:block;
+    max-height:450px;
+    overflow-y:auto;
   }
   thead, tbody tr {
       display:table;
@@ -77,6 +82,18 @@ export default {
       table-layout:fixed;
   }
   thead {
-      width: calc( 100% - 1em )
-  } 
+    width: calc( 100% - 1em )
+  }
+
+  @media screen and (max-width: 660px) {
+    .table thead th {
+      vertical-align: bottom;
+      border-bottom: 2px solid #dee2e6;
+      width: 70px !important;
+    }
+
+    .text-size {
+      font-size: 12px;
+    }
+  }
 </style>

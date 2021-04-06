@@ -1,46 +1,49 @@
 <template>
 <div id="text">
   <b-container fluid>
+    <navigation style="display:none;"></navigation>
     <b-row>
       <b-col offset-md="1" class="mt-2 text-center" md="3">
-        <b-card-group>
+        <b-card-group id="points-table">
           <b-card bg-variant="primary" text-variant="white" :header="`${player1.name} VS ${player2.name}`" class="text-center">
             <b-card-text><h5>{{player1Points}} pts. VS {{player2Points}} pts.</h5></b-card-text>
           </b-card>
         </b-card-group>
       </b-col>
-      <b-col class="text-center mt-2" md="4">
-        <h3 id="timer">Таймер: {{ currentTime }}</h3>
+      <b-col id="timer" class="text-center mt-2" md="4">
+        <h3 id="timer">{{ $t('timer') }}: {{ currentTime }}</h3>
         <h3>{{lifes}}</h3>
         <h3>{{minesPlaced}}</h3>
       </b-col>
       <b-col style="z-index: 100;" class="mt-2" md="4">
         <div class="d-flex">
-          <b-button 
+          <b-button
+            id="show-chat" 
             @click="onShowChat()"
             v-bind:class="{ 'show-chat-btn': showChatButton, 'hide-chat-btn': hideChatButton }" 
             variant="success" 
-            pill>Показать чат
+            pill>{{ $t('showChat') }}
           </b-button>
           <b-button
             @click="onHideChat()" 
             v-bind:class="{ 'show-chat-btn': hideChatButton, 'hide-chat-btn': showChatButton }" 
             variant="danger" 
-            pill>Скрыть чат
+            pill>{{ $t('hideChat') }}
           </b-button>
         </div>
         <div class="d-flex" style="margin-top: -39px; margin-left: 150px;">
           <b-button
-           @click="onHideHelperField()"
+            id="hide-field"
+            @click="onHideHelperField()"
             v-bind:class="{ 'show-help-field': showHelperField, 'hide-help-field': hideHelperField }"
             variant="danger" 
-            pill>Скрыть поле 
+            pill>{{ $t('hideField') }}
           </b-button>
          <b-button
             @click="onShowHelperField()"
             v-bind:class="{ 'show-help-field': hideHelperField, 'hide-help-field': showHelperField }"
             variant="success" 
-            pill>Показать поле 
+            pill>{{ $t('showField') }}
           </b-button>
         </div>
         <transition name="fade">
@@ -49,14 +52,14 @@
           <b-input-group class="mt-2">
               <b-form-textarea v-model="message" type="text"
                 id="textarea-default"
-                placeholder="Сообщение"
+                :placeholder="$t('textAreaPlaceholder')"
               ></b-form-textarea>
               <b-input-group-append>
                 <b-button variant="outline-primary" 
                   v-touch:tap="chat" 
                   type="button" 
                   id="sendBtn" 
-                  value="Отправить">Отправить
+                  value="Отправить"> {{ $t('textAreaButtonText') }}
                 </b-button>
               </b-input-group-append>
           </b-input-group>
@@ -124,6 +127,46 @@
         </b-col>
         </transition>
     </b-row>
+    <div>
+      <b-modal size="lg" id="modal-cheat" hide-footer hide-header no-close-on-backdrop no-close-on-esc centered title="">
+        <div class="text-center">
+          <h1 class="my-4 text-center">{{ $t('cheat') }}</h1>
+          <h3 class="my-4 text-center">{{ $t('wumpus') }}</h3>
+          <img style="height: 300px;" src="../assets/images/wumpus-cheat.png" />
+          <p><b-button variant="primary" class="mt-3 btn-lg" :to="{ name: 'Lobby' }">
+            {{ $t('toLobby') }}
+            </b-button></p>
+        </div>
+      </b-modal>
+      <b-modal size="lg" id="modal-win" centered hide-header hide-footer hide-header-close title="">
+        <div class="text-center">
+          <h3 class="my-4">{{ $t('youWin') }}</h3>
+          <template v-if="getRandomInt(1)==0">
+            <img style="height: 350px;" src="../assets/images/rocket.png" />
+          </template>
+          <template v-else-if="getRandomInt(3)==1">
+            <img style="height: 300px;" src="../assets/images/winner.png" />
+          </template>
+          <template v-else-if="getRandomInt(3)==2">
+            <img style="height: 300px;" src="../assets/images/win.png" />
+          </template>
+          <p><b-button variant="primary" class="mt-4 btn-lg" :to="{ name: 'Lobby' }">
+            {{ $t('toLobby') }}
+          </b-button></p>
+        </div>
+      </b-modal>
+      <b-modal size="lg" id="modal-lose" hide-footer hide-header no-close-on-backdrop no-close-on-esc centered title="">
+        <div class="text-center">
+          <h3 class="my-4 text-center">{{ $t('youLose') }}</h3>
+          <template v-if="getRandomInt(1)==0">
+            <img style="height: 350px;" src="../assets/images/nuclear.png" />
+          </template>
+          <p><b-button variant="primary" class="mt-4 btn-lg" :to="{ name: 'Lobby' }">
+            {{ $t('toLobby') }}
+            </b-button></p>
+        </div>
+      </b-modal>
+    </div>
   </b-container>
 </div>
 </template>
@@ -131,19 +174,17 @@
 <script>
 'use strict'
 import * as signalR from '@aspnet/signalr';
-import axios from 'axios'
-
+import Navigation from '../views/Navigation';
 import GameField from '../views/GameField';
+import i18n from '../plugins/i18n';
 
 export default {
   name: 'Game',
   components: {
-    GameField
-  },
-  props: {
-    
+    GameField, Navigation
   },
   data() {
+    Navigation
     return {
       mine: "",
       ownField: [],
@@ -166,7 +207,7 @@ export default {
       showChatButton: true,
       hideChatButton: false,
       showChat: false,
-      hideChat: true,
+      hideChat: false,
       showHelperField: true,
       hideHelperField: false,
       hideEnemyMines: false,
@@ -176,7 +217,7 @@ export default {
       showOwnNeighbour: false,
       message: "",
       listMessage: [],
-      gameHubConnection: null
+      gameHubConnection: null,
     }
   },
   methods: {
@@ -186,9 +227,32 @@ export default {
       } 
       
       else {
-         this.gameHubConnection.start()
-        .then(() => this.gameHubConnection.invoke('SendMessage', this.player, this.message));
+        this.gameHubConnection.start()
+        .then(() => this.gameHubConnection.invoke('SendMessage', this.message));
       }
+    },
+
+    hideUIElements: function() {
+      document.getElementById("points-table").style.display = "none";
+      document.getElementById("show-chat").style.display = "none";
+      document.getElementById("hide-field").style.display = "none";
+      document.getElementById("timer").style.display = "none";
+    },
+
+    showUIElements: function () {
+      document.body.style.backgroundColor = "#fff";
+      document.getElementById("points-table").style.display = "block";
+      document.getElementById("show-chat").style.display = "block";
+      document.getElementById("hide-field").style.display = "block";
+      document.getElementById("timer").style.display = "block";
+    },
+
+    doNotCheat: function() {
+      this.$router.push({ name: 'Lobby' });
+    },
+
+    getRandomInt: function(max) {
+      return Math.floor(Math.random() * max);
     },
 
     onShowChat: function() {
@@ -230,10 +294,6 @@ export default {
       clearTimeout(this.timer);
     },
 
-    checkTimer: function(){
-      this.gameHubConnection.invoke('CheckTime');
-    },
-
     addMine: function(row, cell, e){
        if(this.gameHubConnection.state === signalR.HubConnectionState.Connected){
         this.gameHubConnection.invoke('PrepareToBattle', row, cell);
@@ -273,34 +333,29 @@ export default {
       this.$router.push({ name: 'Lobby' });
     },
 
-     popToast: function (title, text, variant) {
-        // Use a shorter name for this.$createElement
-        const h = this.$createElement;
-        // Increment the toast count
-        // Create the message
-        const vNodesMsg = h(
-          'p',
-          { class: ['text-center', 'mb-0'] },
-          [
-            h('b-spinner', { props: { type: 'grow', small: true } }),
-            ` ${text} `,
-            h('b-spinner', { props: { type: 'grow', small: true } })
-          ]
-        );
-        // Create the title
-        const vNodesTitle = h(
-          'div',
-          { class: ['d-flex', 'flex-grow-1', 'align-items-baseline', 'mr-2'] },
-          [
-            h('strong', { class: 'mr-2' },  `${title}`),
-            h('small', { class: 'ml-auto text-italics' }, '')
-          ]
-        );
-        // Pass the VNodes as an array for message and title
-        this.$bvToast.toast([vNodesMsg], {
-          title: [vNodesTitle],
-          solid: true,
-          variant: variant
+    popToast: function (title, text, variant) {
+      const h = this.$createElement;
+      const vNodesMsg = h(
+        'p',
+        { class: ['text-center', 'mb-0'] },
+        [
+          h('b-spinner', { props: { type: 'grow', small: true } }),
+          ` ${text} `,
+          h('b-spinner', { props: { type: 'grow', small: true } })
+        ]
+      );
+      const vNodesTitle = h(
+        'div',
+        { class: ['d-flex', 'flex-grow-1', 'align-items-baseline', 'mr-2'] },
+        [
+          h('strong', { class: 'mr-2' },  `${title}`),
+          h('small', { class: 'ml-auto text-italics' }, '')
+        ]
+      );
+      this.$bvToast.toast([vNodesMsg], {
+        title: [vNodesTitle],
+        solid: true,
+        variant: variant
       });
     }
   },
@@ -315,34 +370,32 @@ export default {
     }
   },
   mounted: function () {
-    axios.get('http://192.168.43.159:5000/Lobby/Identity', {withCredentials: true}).then((response) => {
-      this.player = response.data.player;
-      return response;
-    });
+    this.hideUIElements();
 
     this.gameHubConnection = new signalR.HubConnectionBuilder()
       .withUrl('http://192.168.43.159:5000/game')
       .configureLogging(signalR.LogLevel.Information)
-      .build()
-      console.log("Connected", this.gameHubConnection);
+      .build();
+
+    console.log("Connected", this.gameHubConnection);
 
     this.gameHubConnection.serverTimeoutInMilliseconds = 1000 * 60 * 10;  
-
     this.gameHubConnection.start();
 
-    // this.gameHubConnection.onclose(async () => {
-    //     setTimeout(this.pushToLobby, 1000);
-    // });
-
     this.gameHubConnection.on('Reconnect', (reconnectedPlayer, ownField, enemyField) => {
-        console.log(`Attemp to reconnect ${reconnectedPlayer.name}`);
+      console.log(`Attemp to reconnect ${reconnectedPlayer.name}`);
+      this.ownField = ownField;
+      this.enemyField = enemyField;
+    });
 
-        this.ownField = ownField;
-        this.enemyField = enemyField;
+    this.gameHubConnection.on('showGame', () => { 
+      this.showUIElements();
     });
 
     this.gameHubConnection.on('ToLobby', () => {
-        this.$router.push({ name: 'Lobby' });
+      this.hideUIElements();
+      document.body.style.backgroundColor = "#000";
+      this.$bvModal.show('modal-cheat');
     });
 
     this.gameHubConnection.on('HideEnemyMines', () => {
@@ -350,10 +403,10 @@ export default {
     });
 
     this.gameHubConnection.on('ShowField', (ownField) => {
-        this.showComponent = true;
-        this.hideEnemyMines = false;
-        this.isActive = true;
-        this.ownField = ownField;
+      this.showComponent = true;
+      this.hideEnemyMines = false;
+      this.isActive = true;
+      this.ownField = ownField;
     });
     
     this.gameHubConnection.on('OwnField', (ownField) => {
@@ -381,73 +434,60 @@ export default {
     });
 
     this.gameHubConnection.on('Lose', () => {
-      var title = 'Оповещение';
-      var text = 'Вы проиграли';
-      var variant = 'danger';
-      this.popToast(title, text, variant);
-      setTimeout(this.pushToLobby, 6000);
-      this.gameHubConnection.stop();
+      this.hideUIElements();
+      this.$bvModal.show('modal-lose');
+    });
+
+    this.gameHubConnection.on('Win', () => {
+      this.hideUIElements();
+      this.$bvModal.show('modal-win');
     });
 
     this.gameHubConnection.on('Mined', () => {
-      var title = 'Оповещение';
-      var text = 'Подрыв на мине -1 жизнь!';
+      var title = i18n.t('notification');
+      var text = i18n.t('kaboom');
       var variant = 'danger';
       this.popToast(title, text, variant);
     })
 
-    this.gameHubConnection.on('GameOver', (winner, loser)=>{
-      var title = 'Оповещение';
-      var text = 'Победа';
-      var variant = 'success';
-      this.popToast(title, text, variant);
-      axios.post('http://192.168.43.159:5000/GameLogic/GameResult', {
-        points: 25,
-        plusRating: 25 + winner.points,
-        minusRating: -25 + loser.points,
-        win: winner.name,
-        lose: loser.name
-      });
-      setTimeout(this.pushToLobby, 6000);
-      this.gameHubConnection.stop();
+    this.gameHubConnection.on('GameOver', () => {
+        this.gameHubConnection.stop();
     });
 
     this.gameHubConnection.on('Status', player => {
-        this.lifes = `ОСТАЛОСЬ ЖИЗНЕЙ: ${player.lifes}`;
+        this.lifes = `${i18n.t('livesLeft')}: ${player.lifes}`;
     });
 
     this.gameHubConnection.on('MinesPlaced', minesPlaced => {
-        this.minesPlaced = `Мин расставлено: ${minesPlaced} из 24`;
+        this.minesPlaced = `${i18n.t('minesPlaced')}: ${minesPlaced} / 24`;
     });
 
     this.gameHubConnection.on('PrepareRound', () => {
-      var title = 'Оповещение';
-      var text = 'Подготовительный этап';
+      var title = i18n.t('notification');
+      var text = i18n.t('prepareStage');
       var variant = 'info';
       this.popToast(title, text, variant);
     });
 
     this.gameHubConnection.on('CompetitiveStage', () => {
-      var title = 'Оповещение';
-      var text = 'Соревновательный этап';
+      var title = i18n.t('notification');
+      var text = i18n.t('competitiveStage');
       var variant = 'info';
       this.popToast(title, text, variant);
     });
 
     this.gameHubConnection.on('Timeout', () => {
       this.startTimer();
-
-      if (this.currentTime === 0) {
+      if (this.currentTime === 0) 
         this.stopTimer();
-      }
     });
 
     this.gameHubConnection.on('YourTurn', () => {
-      var title = 'Оповещение';
-      var text = 'Ваш ход';
-      var variant = 'info';
-      this.minesPlaced = "";
-      this.popToast(title, text, variant);
+      // var title = 'Оповещение';
+      // var text = 'Ваш ход';
+      // var variant = 'info';
+      // this.minesPlaced = "";
+      // this.popToast(title, text, variant);
     });
 
     this.gameHubConnection.on(('PlayerTurn'), (player) => {
@@ -471,19 +511,10 @@ export default {
     });
 
     this.gameHubConnection.on('NotYourTurn', () => {
-      var title = 'Оповещение';
-      var text = 'Сейчас не ваш ход';
+      var title = i18n.t('notification');
+      var text = i18n.t('notYourTurn');
       var variant = 'info';
       this.popToast(title, text, variant);
-    });
-
-    this.gameHubConnection.on(('Concede'), () => {
-        var title = 'Оповещение';
-        var text = 'Вы выйграли!';
-        var variant = 'success';
-        this.popToast(title, text, variant);
-        setTimeout(this.pushToLobby, 6000);
-        this.gameHubConnection.stop();
     });
   },
   
@@ -494,7 +525,11 @@ export default {
 </script>
 
 <style scoped>
-  .card, .modal {
+  body.hide {
+    display: none;
+  }
+
+  .card {
     background-color: #fff;
     border-radius: 0.25rem;
     padding: 0;
@@ -545,8 +580,8 @@ export default {
   }
 
   .fade-enter-active, .fade-leave-active {
-  transition: opacity .3s;
-}
+    transition: opacity .3s;
+  }
   .fade-enter, .fade-leave-to /* .fade-leave-active до версии 2.1.8 */ {
     opacity: 0;
   }
@@ -571,5 +606,3 @@ export default {
     }
   }
 </style>
-
-<style src="../assets/css/app.css"/>
