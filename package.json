@@ -17,6 +17,7 @@
     "rxjs": "^6.5.3",
     "signalr": "^2.4.1",
     "vue": "^2.6.11",
+    "vue-autoscroll": "^1.2.1",
     "vue-class-component": "^7.1.0",
     "vue-flag-icon": "^1.0.6",
     "vue-i18n": "^8.24.2",

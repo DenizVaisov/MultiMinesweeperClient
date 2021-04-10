@@ -10,46 +10,46 @@
           </b-card>
         </b-card-group>
       </b-col>
-      <b-col id="timer" class="text-center mt-2" md="4">
-        <h3 id="timer">{{ $t('timer') }}: {{ currentTime }}</h3>
+      <b-col id="middleTopUI" class="text-center mt-2" md="4">
+        <h3>{{ $t('timer') }}: {{ currentTime }}</h3>
         <h3>{{lifes}}</h3>
         <h3>{{minesPlaced}}</h3>
       </b-col>
       <b-col style="z-index: 100;" class="mt-2" md="4">
         <div class="d-flex">
           <b-button
-            id="show-chat" 
+            id="show-chat-btn" 
             @click="onShowChat()"
-            v-bind:class="{ 'show-chat-btn': showChatButton, 'hide-chat-btn': hideChatButton }" 
             variant="success" 
             pill>{{ $t('showChat') }}
           </b-button>
           <b-button
+            id="hide-chat-btn"
+            class="hide-element"
             @click="onHideChat()" 
-            v-bind:class="{ 'show-chat-btn': hideChatButton, 'hide-chat-btn': showChatButton }" 
             variant="danger" 
             pill>{{ $t('hideChat') }}
           </b-button>
         </div>
         <div class="d-flex" style="margin-top: -39px; margin-left: 150px;">
           <b-button
-            id="hide-field"
+            id="hide-field-btn"
             @click="onHideHelperField()"
-            v-bind:class="{ 'show-help-field': showHelperField, 'hide-help-field': hideHelperField }"
             variant="danger" 
             pill>{{ $t('hideField') }}
           </b-button>
          <b-button
+            id="show-field-btn"
+            class="hide-element"
             @click="onShowHelperField()"
-            v-bind:class="{ 'show-help-field': hideHelperField, 'hide-help-field': showHelperField }"
             variant="success" 
             pill>{{ $t('showField') }}
           </b-button>
         </div>
         <transition name="fade">
-        <div v-if="hideChat">
+        <div v-if="showChat">
         <div id="inputForm">
-          <b-input-group class="mt-2">
+          <b-input-group style="margin-top: 30px;">
               <b-form-textarea v-model="message" type="text"
                 id="textarea-default"
                 :placeholder="$t('textAreaPlaceholder')"
@@ -112,8 +112,9 @@
         <transition
           name="fade"
         >
-        <b-col v-if="showHelperField" style="z-index: 10" class="mt-2"  md="5">
-          <game-field 
+        <b-col style="z-index: 10" class="mt-2"  md="5">
+          <game-field
+            id="helper-field" 
             v-bind:class="{ blocked: isActive }"
             :gameField="ownField"
             :clickedCell="clickedCell"
@@ -204,8 +205,10 @@ export default {
       showComponent: false,
       row: "",
       isActive: false,
-      showChatButton: true,
-      hideChatButton: false,
+      showChatButtonGreen: true,
+      hideChatButtonGreen: false,
+      showChatButtonRed: false,
+      hideChatButtonRed: true,
       showChat: false,
       hideChat: false,
       showHelperField: true,
@@ -234,17 +237,17 @@ export default {
 
     hideUIElements: function() {
       document.getElementById("points-table").style.display = "none";
-      document.getElementById("show-chat").style.display = "none";
-      document.getElementById("hide-field").style.display = "none";
-      document.getElementById("timer").style.display = "none";
+      document.getElementById("show-chat-btn").style.display = "none";
+      document.getElementById("helper-field").style.display = "none";
+      document.getElementById("middleTopUI").style.display = "none";
     },
 
     showUIElements: function () {
       document.body.style.backgroundColor = "#fff";
       document.getElementById("points-table").style.display = "block";
-      document.getElementById("show-chat").style.display = "block";
-      document.getElementById("hide-field").style.display = "block";
-      document.getElementById("timer").style.display = "block";
+      document.getElementById("show-chat-btn").style.display = "block";
+      document.getElementById("helper-field").style.display = "block";
+      document.getElementById("middleTopUI").style.display = "block";
     },
 
     doNotCheat: function() {
@@ -257,28 +260,28 @@ export default {
 
     onShowChat: function() {
       console.log('show chat')
-      this.hideChatButton = true;
-      this.showChatButton = false;
+      document.getElementById('show-chat-btn').style = "display:none;";
+      document.getElementById('hide-chat-btn').style = "display:block;";
       this.showChat = true;
-      this.hideChat = true;
     },
 
     onHideChat: function() {
       console.log('hide chat')
-      this.hideChatButton = false;
-      this.showChatButton = true;
+      document.getElementById('show-chat-btn').style = "display:block;";
+      document.getElementById('hide-chat-btn').style = "display:none;";
       this.showChat = false;
-      this.hideChat = false;
     },
 
     onShowHelperField: function() {
-      this.hideHelperField = false;
-      this.showHelperField = true;
+      document.getElementById('show-field-btn').style = "display:none;";
+      document.getElementById('hide-field-btn').style = "display:block;";
+      document.getElementById('show-helper-field').style = "display:block;";
     },
 
     onHideHelperField: function() {
-      this.hideHelperField = true;
-      this.showHelperField = false;
+      document.getElementById('show-field-btn').style = "display:block;";
+      document.getElementById('hide-field-btn').style = "display:none;";
+      document.getElementById('show-helper-field').style = "display:none;";
     },
 
     clear: function() {
@@ -295,13 +298,13 @@ export default {
     },
 
     addMine: function(row, cell, e){
-       if(this.gameHubConnection.state === signalR.HubConnectionState.Connected){
-        this.gameHubConnection.invoke('PrepareToBattle', row, cell);
-        e.preventDefault();
-       }
-       else{
-         this.gameHubConnection.start();
-       }
+      if(this.gameHubConnection.state === signalR.HubConnectionState.Connected){
+      this.gameHubConnection.invoke('PrepareToBattle', row, cell);
+      e.preventDefault();
+      }
+      else{
+        this.gameHubConnection.start();
+      }
     },
 
     addFlag: function(row, cell, e){
@@ -315,11 +318,11 @@ export default {
 
     start: async function()  {
       try {
-          await this.gameHubConnection.start();
-          console.log("connected");
+        await this.gameHubConnection.start();
+        console.log("connected");
       } catch (err) {
-          console.log(err);
-          setTimeout(() => this.start(), 5000);
+        console.log(err);
+        setTimeout(() => this.start(), 5000);
       }
     },
 
@@ -529,6 +532,10 @@ export default {
     display: none;
   }
 
+  .hide-element {
+    display: none;
+  }
+
   .card {
     background-color: #fff;
     border-radius: 0.25rem;
@@ -549,34 +556,6 @@ export default {
   }
   .blocked {
     pointer-events: none;
-  }
-
-  .show-chat-btn {
-    display: block;
-  }
-
-  .hide-chat-btn {
-    display: none;
-  }
-
-  .hide-chat {
-    display: none;
-  }
-
-  .show-chat {
-    display: block;
-  }
-
-  .show-help-field {
-    display: block;
-    opacity: 1;
-    transition:all 0.4s;
-  }
-
-  .hide-help-field {
-    display: none;
-    opacity: 0;
-    transition:all 1s;
   }
 
   .fade-enter-active, .fade-leave-active {

@@ -35,53 +35,43 @@
               </h3>
             </b-col>
           </b-row>
-          <b-input-group>
-            <b-form-textarea v-model="message" type="text"
-              rows="3"
-              id="textarea"
-              :placeholder="$t('textAreaPlaceholder')"
-            ></b-form-textarea>
-            <b-input-group-append>
-            <b-button 
-              :disabled="disabled"
-              variant="outline-primary" 
-              v-touch:tap="chat" 
-              type="button" 
-              id="sendBtn" 
-              value="Отправить">{{ $t('textAreaButtonText') }}
-            </b-button>
-            </b-input-group-append>
-          </b-input-group>
         </div>
-        <div class="mt-4">
+        <div>
           <h5 v-if="player != null" id="players-online">
             {{ $t('playersInLobby') }}: {{players.length}}
           </h5>
         </div>
-        <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 style="color: black;" class="text-center"></h3>
-        </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading">
-              <h3 style="color: black;" class="text-center"></h3>
-          </div>
-          <div id="chatroom" class="mt-4 panel-body" style="max-height: 400px; overflow-y: scroll;">
-            <div v-for="(player, index) in listMessage.slice().reverse()" :item="player" :key="index" class="mb-4 max-w-sm mx-auto">
-              <div class="card">
-                <!-- <img src="" class="contact-list-avatar" alt="">  -->
-                <div>
-                  <div id="username" class="contact-list-name">
-                    <span> {{ player.name }} </span>
-                    <span class="ml-3"> {{ player.time }} </span>
+        <div class="mt-4 panel panel-default">
+          <div style="height: 400px">
+            <div id="chatroom" class="panel-body">
+              <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mb-2 max-w-sm mx-auto">
+                  <!-- <img src="" class="contact-list-avatar" alt="">  -->
+                  <div class="ml-3">
+                    <div class="contact-list-name">
+                      <span> {{ player.time }} <span class="ml-1">{{ player.name }}:</span> <span class="ml-1"> {{ player.message }} </span>  </span>
+                    </div>
                   </div>
-                  <div id="usermessage" class="contact-list-name">
-                    <span> {{ player.message }} </span> 
-                  </div>
-                </div>
               </div>
             </div>
+          </div>
+          <div class="mt-3 mb-3">
+            <b-input-group>
+              <b-form-textarea v-model="message" type="text"
+                rows="1"
+                id="textarea"
+                :placeholder="$t('textAreaPlaceholder')"
+            ></b-form-textarea>
+            <b-input-group-append>
+              <b-button 
+                :disabled="disabled"
+                variant="outline-primary" 
+                v-touch:tap="chat" 
+                type="button" 
+                id="sendBtn" 
+                value="Отправить">{{ $t('textAreaButtonText') }}
+              </b-button>
+            </b-input-group-append>
+            </b-input-group>
           </div>
         </div>
       </b-col>
@@ -94,6 +84,12 @@
 <style>
 a.nav-link {
   display: block;
+}
+
+#chatroom {
+  word-wrap: break-word;
+  max-height: 400px; 
+  overflow-y: auto;
 }
 
 .card {
@@ -219,8 +215,14 @@ components: {
           this.player = null;
       },
 
+      autoScrollChatMessages() {
+        let chat = this.$el.querySelector('#chatroom');
+        chat.scrollTop = chat.scrollHeight;
+      },
+
       getChatMessages: function() {
-        this.chatHubConnection.invoke('SendAllMessages');
+        if(this.chatHubConnection.state === signalR.HubConnectionState.Connected) 
+          this.chatHubConnection.invoke('SendAllMessages');
       },
 
       whiteBackGround: function() {
@@ -261,7 +263,13 @@ components: {
         if (this.chatHubConnection.state === signalR.HubConnectionState.Connected) {
           if(this.message.length > 0) {
             let dateNow = new Date(Date.now());
-            let time = `${dateNow.getHours()}:${dateNow.getMinutes()}`
+            let time;
+
+            if(dateNow.getMinutes() < 10) 
+              time = `${dateNow.getHours()}:0${dateNow.getMinutes()}`;
+            else 
+              time = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
+
             this.chatHubConnection.invoke('SendMessage', this.player, this.message, time);
             this.chatHubConnection.invoke('CheckPlayers');
             this.message = "";
@@ -284,6 +292,7 @@ components: {
     this.chatHubConnection.start();
 
     setTimeout(this.getChatMessages, 1000);
+    setTimeout(this.autoScrollChatMessages, 1100);
 
     this.chatHubConnection.on('PlayersOnline', (players) => {
       this.players = players;
@@ -308,6 +317,7 @@ components: {
     this.chatHubConnection.on('ReceiveMessage', (player, message, time) => {
       const insertData = {name: player, message: message, time: time };
       this.listMessage.push(insertData);
+      setTimeout(this.autoScrollChatMessages, 100);
       console.log(this.listMessage, 'listMessage');
     });
   }
