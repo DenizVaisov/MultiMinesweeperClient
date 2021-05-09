@@ -6,7 +6,7 @@
       <b-col offset-md="1" class="mt-2 text-center" md="3">
         <b-card-group id="points-table">
           <b-card bg-variant="primary" text-variant="white" :header="`${player1.name} VS ${player2.name}`" class="text-center">
-            <b-card-text><h5>{{player1Points}} pts. VS {{player2Points}} pts.</h5></b-card-text>
+            <b-card-text><h5>{{playerPoints}} pts.</h5></b-card-text>
           </b-card>
         </b-card-group>
       </b-col>
@@ -23,31 +23,55 @@
             variant="success" 
             pill>{{ $t('showChat') }}
           </b-button>
-          <b-button
-            id="hide-chat-btn"
-            class="hide-element"
-            @click="onHideChat()" 
-            variant="danger" 
-            pill>{{ $t('hideChat') }}
-          </b-button>
         </div>
         <div class="d-flex" style="margin-top: -39px; margin-left: 150px;">
-          <b-button
-            id="hide-field-btn"
-            @click="onHideHelperField()"
-            variant="danger" 
-            pill>{{ $t('hideField') }}
-          </b-button>
          <b-button
             id="show-field-btn"
-            class="hide-element"
             @click="onShowHelperField()"
             variant="success" 
             pill>{{ $t('showField') }}
           </b-button>
         </div>
-        <transition name="fade">
-        <div v-if="showChat">
+      </b-col>
+    </b-row>
+    <b-row class="d-flex justify-content-center mx-auto">
+      <div class="">
+        <b-col v-show="showComponent" style="z-index: 10" class="mt-2"  md="12">
+          <game-field 
+            :gameField="enemyField"
+            :clickedCell="clickedCell"
+            :addMine="addMine"
+            :addFlag="addFlag"
+            :hideNeighbour="true"
+            :hideFlags="true"
+            :hideMines="hideEnemyMines"
+            @contextmenu.prevent="addFlag"
+          >
+          </game-field>
+        </b-col>
+        <transition
+          name="fade"
+        >
+        <b-col class="mt-2" md="12">
+          <game-field
+            id="helper-field"
+            v-if="isHelperFieldDisplay" 
+            v-bind:class="{ blocked: isActive }"
+            :gameField="ownField"
+            :clickedCell="clickedCell"
+            :addMine="addMine"
+            :addFlag="addFlag"
+            :hideNeighbour="false"
+            :hideMines="hideOwnMines"
+            @contextmenu.prevent="addFlag"
+          >
+          </game-field>
+        </b-col>
+        </transition>
+      </div>
+    </b-row>
+    <div>
+      <b-modal size="lg" id="chat-modal" centered hide-footer>
         <div id="inputForm">
           <b-input-group style="margin-top: 30px;">
               <b-form-textarea v-model="message" type="text"
@@ -64,71 +88,40 @@
               </b-input-group-append>
           </b-input-group>
         </div>
-        <div 
-          class="hide-chat panel panel-default">
-        <div class="panel-heading">
-            <h3 style="color: black;" class="text-center"></h3>
-        </div>
-        <div id="chatroom" class="mt-2 panel-body" style="max-height: 500px; overflow-y: scroll;">
-          <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mb-4 max-w-sm mx-auto">
-            <div class="card">
-                <div class="contact-list">
-                    <div class="contact-list-item">
-                      <div class="contact-list-contact">
-                         <img src="" class="contact-list-avatar"> 
-                        <div>
-                          <div id="username" class="contact-list-name">
-                            {{ player.name }} 
-                          </div>
-                          <div id="usermessage" class="contact-list-email">
-                            {{ player.data }} 
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                </div>
+        <div class="panel panel-default">
+        <div class="chat" style="height: 380px">
+        <div id="chatroom" class="panel-body" style="max-height: 375px; overflow-y: scroll;">
+          <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mt-2 max-w-sm mx-auto">
+            <div>
+              <div class="ml-3">
+                <span>{{ player.time }} </span>
+                <span class="ml-3">{{ player.name }}: </span> 
+                <span class="ml-1">{{ player.message }}</span>
               </div>
             </div>
           </div>
+         </div>
         </div>
-        </div>
-        </transition>
-      </b-col>
-    </b-row>
-    <b-row class="d-flex justify-content-center mx-auto">
-        <b-col v-show="showComponent" style="z-index: 10" class="mt-2"  md="5">
-          <game-field 
-            :gameField="enemyField"
-            :clickedCell="clickedCell"
-            :addMine="addMine"
-            :addFlag="addFlag"
-            :hideNeighbour="true"
-            :hideFlags="true"
-            :hideMines="hideEnemyMines"
-            @contextmenu.prevent="addFlag"
-          >
-          </game-field>
-        </b-col>
-        <transition
-          name="fade"
-        >
-        <b-col style="z-index: 10" class="mt-2"  md="5">
-          <game-field
-            id="helper-field" 
-            v-bind:class="{ blocked: isActive }"
-            :gameField="ownField"
-            :clickedCell="clickedCell"
-            :addMine="addMine"
-            :addFlag="addFlag"
-            :hideNeighbour="false"
-            :hideMines="hideOwnMines"
-            @contextmenu.prevent="addFlag"
-          >
-          </game-field>
-        </b-col>
-        </transition>
-    </b-row>
-    <div>
+      </div>
+      </b-modal>
+      <b-modal size="lg" id="own-field-modal" centered hide-footer>
+        <b-row class="d-flex justify-content-md-center mx-auto">
+          <b-col class="mt-2" md="8">
+              <game-field
+                id="helper-field" 
+                v-bind:class="{ blocked: isActive }"
+                :gameField="ownField"
+                :clickedCell="clickedCell"
+                :addMine="addMine"
+                :addFlag="addFlag"
+                :hideNeighbour="false"
+                :hideMines="hideOwnMines"
+                @contextmenu.prevent="addFlag"
+              >
+              </game-field>
+          </b-col>
+        </b-row>
+      </b-modal>
       <b-modal size="lg" id="modal-cheat" hide-footer hide-header no-close-on-backdrop no-close-on-esc centered title="">
         <div class="text-center">
           <h1 class="my-4 text-center">{{ $t('cheat') }}</h1>
@@ -193,8 +186,7 @@ export default {
       mines: [],
       cell: "",
       player: {},
-      player1Points: +"",
-      player2Points: +"",
+      playerPoints: 0,
       currentPlayer: {},
       lifes: "",
       minesPlaced: "",
@@ -203,16 +195,8 @@ export default {
       player1: {},
       player2: {},
       showComponent: false,
-      row: "",
+      isHelperFieldDisplay: true,
       isActive: false,
-      showChatButtonGreen: true,
-      hideChatButtonGreen: false,
-      showChatButtonRed: false,
-      hideChatButtonRed: true,
-      showChat: false,
-      hideChat: false,
-      showHelperField: true,
-      hideHelperField: false,
       hideEnemyMines: false,
       hideOwnMines: true,
       hideFlags: true,
@@ -226,13 +210,27 @@ export default {
   methods: {
     chat: function () {
       if (this.gameHubConnection.state === signalR.HubConnectionState.Connected) {
-        this.gameHubConnection.invoke('SendMessage', this.message);
+        let dateNow = new Date(Date.now());
+        let time;
+
+        if(dateNow.getMinutes() < 10) 
+          time = `${dateNow.getHours()}:0${dateNow.getMinutes()}`;
+        else 
+          time = `${dateNow.getHours()}:${dateNow.getMinutes()}`;
+
+        this.gameHubConnection.invoke('SendMessage', this.message, time);
       } 
       
       else {
         this.gameHubConnection.start()
         .then(() => this.gameHubConnection.invoke('SendMessage', this.message));
       }
+    },
+
+    getChatMessages: function() {
+      if (this.gameHubConnection.state === signalR.HubConnectionState.Connected) {
+        this.gameHubConnection.invoke('SendAllMessages');
+      } 
     },
 
     hideUIElements: function() {
@@ -259,29 +257,12 @@ export default {
     },
 
     onShowChat: function() {
-      console.log('show chat')
-      document.getElementById('show-chat-btn').style = "display:none;";
-      document.getElementById('hide-chat-btn').style = "display:block;";
-      this.showChat = true;
+      this.$bvModal.show('chat-modal');
     },
 
-    onHideChat: function() {
-      console.log('hide chat')
-      document.getElementById('show-chat-btn').style = "display:block;";
-      document.getElementById('hide-chat-btn').style = "display:none;";
-      this.showChat = false;
-    },
 
     onShowHelperField: function() {
-      document.getElementById('show-field-btn').style = "display:none;";
-      document.getElementById('hide-field-btn').style = "display:block;";
-      document.getElementById('show-helper-field').style = "display:block;";
-    },
-
-    onHideHelperField: function() {
-      document.getElementById('show-field-btn').style = "display:block;";
-      document.getElementById('hide-field-btn').style = "display:none;";
-      document.getElementById('show-helper-field').style = "display:none;";
+      this.$bvModal.show('own-field-modal');
     },
 
     clear: function() {
@@ -370,8 +351,9 @@ export default {
         this.currentTime = 20;
         this.gameHubConnection.invoke('CheckTime');
       }
-    }
+    },
   },
+
   mounted: function () {
     this.hideUIElements();
 
@@ -382,17 +364,25 @@ export default {
 
     console.log("Connected", this.gameHubConnection);
 
-    this.gameHubConnection.serverTimeoutInMilliseconds = 1000 * 60 * 10;  
+    this.gameHubConnection.serverTimeoutInMilliseconds = 1000 * 360 * 10;  
     this.gameHubConnection.start();
+    setTimeout(this.getChatMessages, 200);
 
     this.gameHubConnection.on('Reconnect', (reconnectedPlayer, ownField, enemyField) => {
       console.log(`Attemp to reconnect ${reconnectedPlayer.name}`);
       this.ownField = ownField;
       this.enemyField = enemyField;
+      this.showComponent = true;
+      this.isHelperFieldDisplay = true;
+      this.showUIElements();
     });
 
-    this.gameHubConnection.on('showGame', () => { 
+    this.gameHubConnection.on('ShowGame', () => { 
       this.showUIElements();
+    });
+
+    this.gameHubConnection.on('HideField', () => {
+      this.isHelperFieldDisplay = false;
     });
 
     this.gameHubConnection.on('ToLobby', () => {
@@ -426,8 +416,12 @@ export default {
         console.log(this.enemyField);
     });
 
-    this.gameHubConnection.on('ReceiveMessage', (player, message) => {
-      const insertdata = {name: player, data: message};
+    this.gameHubConnection.on('ReceiveAllMessages', (messages) => {
+      this.listMessage = messages;
+    });
+
+    this.gameHubConnection.on('ReceiveMessage', (player, message, time) => {
+      const insertdata = {name: player, message: message, time: time};
       this.listMessage.push(insertdata);
     });
 
@@ -498,9 +492,8 @@ export default {
       console.log(`Now is ${this.currentPlayer.name} turn`);
     });
 
-    this.gameHubConnection.on('Points', (player1, player2) => {
-      this.player1Points = player1;
-      this.player2Points = player2;
+    this.gameHubConnection.on('Points', (points) => {
+      this.playerPoints = points;
     });
 
     this.gameHubConnection.on('TimeIsRacing', () => {
@@ -530,6 +523,18 @@ export default {
 <style scoped>
   body.hide {
     display: none;
+  }
+
+  .chat {
+    margin: 1em auto;
+    border-radius: 8px;
+    border: 2px solid #ced4da;
+    position: relative;
+  }
+
+  #chatroom {
+    word-wrap: break-word;
+    overflow-y: auto;
   }
 
   .hide-element {

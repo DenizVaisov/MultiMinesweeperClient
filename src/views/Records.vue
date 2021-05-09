@@ -22,8 +22,8 @@
                             <td>{{index + 1}}</td>
                             <td>{{player.login}}</td>
                             <td>{{player.points}}</td>
-                            <td>{{player.win}} {{ $t('times') }}</td>
-                            <td>{{player.lose}} {{ $t('times') }}</td>
+                            <td class="lime">{{player.win}} {{ $t('times') }}</td>
+                            <td class="red">{{player.lose}} {{ $t('times') }}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -66,6 +66,14 @@ export default {
 </script>
 
 <style scoped>
+  .lime{
+    color: #00FF00;
+  }
+
+  .red{
+    color: #FF0000;
+  }
+
   tbody {
     display:block;
     max-height:450px;

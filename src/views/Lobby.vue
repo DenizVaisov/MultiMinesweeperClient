@@ -6,31 +6,37 @@
         <b-col offset-md="2" md="8">
         <div class="mt-4" id="inputForm">
           <b-row> 
-            <b-col md="2">
-              <b-button 
-                id="play" 
-                pill
-                :disabled="playButtonDisabler"
-                v-on:click="playersMathching()" 
-                :variant="variant">{{ $t('playButtonText') }}
-              </b-button>
+            <b-col md="12">
+              <div class="text-center">
+                <b-button 
+                  id="play" 
+                  pill
+                  size="lg"
+                  :disabled="playButtonDisabler"
+                  v-on:click="playersMathching()" 
+                  :variant="variant">{{ $t('playButtonText') }} 
+                  <b-icon icon="play-fill"></b-icon>
+                </b-button>
+              </div>
             </b-col>
-            <b-col md="9">
-              <h3 id="msg" ref="message">
+          </b-row>
+          <b-row>
+            <b-col class="mt-3" md="12">
+              <h3 class="text-center" id="msg" ref="message">
                 {{onlyOne}}
               </h3>
             </b-col>
           </b-row>
           <b-row>
-            <b-col md="9">
-              <h3 class="mt-4">
+            <b-col md="12">
+              <h3 class="text-center mt-3">
                 {{waiting}}
               </h3>
             </b-col>
           </b-row>
           <b-row>
-            <b-col md="9">
-              <h3>
+            <b-col md="12">
+              <h3 class="text-center">
                 {{playersInRanking}}
               </h3>
             </b-col>
@@ -42,12 +48,12 @@
           </h5>
         </div>
         <div class="mt-4 panel panel-default">
-          <div style="height: 400px">
+          <div class="chat" style="height: 480px">
             <div id="chatroom" class="panel-body">
-              <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mb-2 max-w-sm mx-auto">
+              <div v-for="(player, index) in listMessage" :item="player" :key="index" class="mt-2 max-w-sm mx-auto">
                   <!-- <img src="" class="contact-list-avatar" alt="">  -->
                   <div class="ml-3">
-                    <div class="contact-list-name">
+                    <div>
                       <span> {{ player.time }} <span class="ml-1">{{ player.name }}:</span> <span class="ml-1"> {{ player.message }} </span>  </span>
                     </div>
                   </div>
@@ -84,6 +90,13 @@
 <style>
 a.nav-link {
   display: block;
+}
+
+.chat {
+  margin: 1em auto;
+  border-radius: 8px;
+  border: 2px solid #ced4da;
+  position: relative;
 }
 
 #chatroom {
@@ -195,8 +208,6 @@ components: {
       variant: "primary",
       success: "success",
       waiting: "",
-      chatHistoty:[],
-      newPlayer: "",
       onlyOne: "",
       obj: {},
       disabled: false,
@@ -236,8 +247,8 @@ components: {
         }
 
         if(this.chatHubConnection.state === signalR.HubConnectionState.Connected) {
-          this.variant = this.success;
           if(this.players.length > 1){
+            this.variant = this.success;
             this.playButtonDisabler = true;
             this.chatHubConnection.invoke('MatchPlayers');
           }
@@ -281,7 +292,7 @@ components: {
   
   mounted: function() {
     this.whiteBackGround();
-    setTimeout(this.getPlayerData, 1000);
+    setTimeout(this.getPlayerData, 100);
 
     this.chatHubConnection = new signalR.HubConnectionBuilder()
       .withUrl('http://192.168.43.159:5000/chat')
@@ -291,17 +302,17 @@ components: {
         
     this.chatHubConnection.start();
 
-    setTimeout(this.getChatMessages, 1000);
-    setTimeout(this.autoScrollChatMessages, 1100);
+    setTimeout(this.getChatMessages, 200);
+    setTimeout(this.autoScrollChatMessages, 300);
 
     this.chatHubConnection.on('PlayersOnline', (players) => {
       this.players = players;
       console.log(this.players);
     });
 
-    this.chatHubConnection.on('PlayersInRanking', (players) => {
+    this.chatHubConnection.on('PlayersInRanking', (playersCount) => {
       this.waiting = i18n.t('playersMatched');
-      this.playersInRanking = `${i18n.t('playersIsAwait')}: ${players}`
+      this.playersInRanking = `${i18n.t('playersIsAwait')}: ${playersCount}`
     });
 
     this.chatHubConnection.on('ToTheGame', () =>{
@@ -309,8 +320,8 @@ components: {
       this.chatHubConnection.stop();
     });
 
-    this.chatHubConnection.on('ReceiveAllMessages', (message) => {
-      this.listMessage = message;
+    this.chatHubConnection.on('ReceiveAllMessages', (messages) => {
+      this.listMessage = messages;
       console.log(this.listMessage);
     });
 

@@ -10,13 +10,13 @@
           <template v-if="!cell.clickedCell">
           </template>
           <template v-else-if="cell.clickedCell && cell.minedCell">
-            <img style="height:25px;" v-show="hideMines" class="bomb" id="bomb" src="../assets/images/bomb.png"/>
+            <img v-show="hideMines" class="item" id="bomb" src="../assets/images/bomb.png"/>
           </template>
           <template v-else-if="cell.clickedCell && cell.merged">
-            <b-icon v-show="hideFlags" icon="flag-fill" style="height:25px;" variant="danger"></b-icon>
+            <b-icon v-show="hideFlags" class="item" icon="flag-fill" variant="danger"></b-icon>
           </template>
           <template v-else-if="cell.clickedCell && cell.kaboom">
-            <img style="height:25px;" class="bomb" id="bomb" src="../assets/images/boom.png"/>  
+            <img class="item" id="bomb" src="../assets/images/boom.png"/>  
           </template>
           <template v-else-if="cell.clickedCell && !cell.minedCell">
             <span v-show="hideNeighbour">{{cell.neighbourCells}}</span>
@@ -44,6 +44,10 @@ export default {
     text-align: center;
   }
 
+  .item {
+    height: 25px;
+  }
+
   .table-bordered {
     border: 0px solid #dee2e6; 
   }
@@ -68,5 +72,23 @@ export default {
   .table-hover.table-hover-cells > tbody > tr.active:hover > th:hover,
   .table-hover.table-hover-cells > tbody > tr.active:hover > td:hover {
     background-color: #9999a8;
+}
+
+@media screen and (max-width: 660px) {
+  .cell {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #b3b9be;
+    padding: 0;
+    text-align: center;
+  }
+
+  .item {
+    height: 15px;
+  }
+
+  span {
+    font-size: 12px;
+  }
 }
 </style>

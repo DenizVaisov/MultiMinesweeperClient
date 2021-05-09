@@ -18,7 +18,7 @@
           </template>
           <template v-else>
               <b-navbar-brand><b-button pill variant="danger">{{player.player}}</b-button></b-navbar-brand>
-              <b-navbar-brand><b-button pill variant="danger">{{player.points}} pts</b-button></b-navbar-brand>
+              <b-navbar-brand><b-button pill variant="info">{{player.points}} pts</b-button></b-navbar-brand>
           </template>
           <b-dropdown right no-caret variant="link">
               <template #button-content>
@@ -88,20 +88,13 @@ export default {
     },
 
     getPlayerData: function () {
-      let playerData = localStorage.getItem('playerData');
-      if(playerData === null) {
         PlayerService.getPlayer().then(response => {
           if(response.status === 201 || response.status === 200) {
-            if(response.data.player === undefined) return;
-            playerData = { player : `${response.data.player}`, points: `${response.data.points}` }
-            localStorage.setItem('playerData', JSON.stringify(playerData));
+            localStorage.setItem('playerData', JSON.stringify(response.data));
             this.player = response.data;
             return response;
           }
         });
-        return;
-      }
-      this.player = JSON.parse(playerData);
     },
 
     logout:function () {
